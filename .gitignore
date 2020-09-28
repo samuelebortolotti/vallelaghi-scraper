@@ -1,0 +1,4 @@
+.rubocop.yml
+.rubocop_todo.yml
+todefine.txt
+doc/*
