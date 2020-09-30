@@ -2,3 +2,4 @@
 .rubocop_todo.yml
 todefine.txt
 doc/*
+scraped_articles.*
