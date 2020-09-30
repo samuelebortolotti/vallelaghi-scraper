@@ -1,15 +1,16 @@
+# frozen_string_literal: true
+
 require_relative '../lib/scraper/article'
 require_relative '../lib/scraper/scraper'
 require_relative '../lib/scraper/vallelaghi_constants'
 require 'httparty'
 require 'nokogiri'
-require 'json'
 
 RSpec.describe VallelaghiScraper do
   subject(:vallelaghi_scraper) { described_class.new }
-  
+
   # Tests if the data gathered from the url is really an Article object
-  # 
+  #
   # @param +from_url+::url from which the data will be gathered
   def self.test_articles_gathering(from_url)
     it "retrieves articles from #{from_url} correctly" do
@@ -19,14 +20,17 @@ RSpec.describe VallelaghiScraper do
     end
   end
 
+  # Tests the file which is generated
+  #
+  # @param +filename+::name of the file which will be saved
+  # @param +mode+::the supported formats are :json, :pretty_json, :jsonlines, :csv
   def self.generate_check_existence_of_the_file(filename, mode)
     it "exists a file named #{filename}" do
-      puts 'Genero il file... in rspec ofc'
-      vallelaghi_scraper.save_retrieved_articles filename, mode
+      vallelaghi_scraper.save_retrieved_articles articles, filename, mode
       expect(File.file?(filename)).to be true
     end
   end
-  
+
   context 'when the html page is requested' do
     it 'checks if the service is available: response code' do
       response = HTTParty.get(VallelaghiConstants::BASE_URL)
@@ -34,7 +38,7 @@ RSpec.describe VallelaghiScraper do
     end
   end
 
-  context '#parse' do
+  describe '#parse' do
     test_articles_gathering VallelaghiConstants::ARTICOLI_DI_VALLE
     test_articles_gathering VallelaghiConstants::ARTICOLI_REGIONALI
     test_articles_gathering VallelaghiConstants::ARTICOLI_NAZIONALI
@@ -42,8 +46,10 @@ RSpec.describe VallelaghiScraper do
     test_articles_gathering VallelaghiConstants::LETTERE_AL_GIORNALE
   end
 
-  context '#save_retrieved_articles' do
-    generate_check_existence_of_the_file 'scraped_articles.csv', :csv
-    generate_check_existence_of_the_file 'scraped_articles.json', :json
+  describe '#save_retrieved_articles' do
+    let(:output_file) { 'scraped_articles' }
+    
+    generate_check_existence_of_the_file "#{output_file}.csv", :csv
+    generate_check_existence_of_the_file "#{output_file}.json", :json
   end
 end

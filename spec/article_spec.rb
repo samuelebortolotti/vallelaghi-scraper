@@ -29,7 +29,7 @@ RSpec.describe Article do
     end
   end
 
-  context '#to_hash' do
+  describe '#to_hash' do
     it 'returns an hash object' do
       expect(article.to_hash.is_a?(Hash)).to be true
     end

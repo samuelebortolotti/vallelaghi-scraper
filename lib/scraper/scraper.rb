@@ -61,7 +61,7 @@ class VallelaghiScraper < Kimurai::Base
   # Params:
   # @param +name+:: name of the file
   # @param +format_mode+:: the supported formats are :json, :pretty_json, :jsonlines, :csv
-  def save_retrieved_articles(name, format_mode)
+  def save_retrieved_articles(articles, name, format_mode)
     hash_array = { :articles => @articles.map(&:to_hash) }
     save_to name, hash_array, :format => format_mode, :position => false
   end
