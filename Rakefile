@@ -12,7 +12,7 @@ end
 desc 'Generate documentation'
 RDoc::Task.new do |rdoc|
   rdoc.main = 'README.md'
-  rdoc.rdoc_dir = 'rdoc'
+  rdoc.rdoc_dir = 'doc'
   rdoc.title = 'Vallelaghi-Scraper Documentation'
-  rdoc.rdoc_files.include('README.md', 'lib/*.rb')
+  rdoc.rdoc_files.include('README.md', 'lib/scraper/*.rb')
 end
