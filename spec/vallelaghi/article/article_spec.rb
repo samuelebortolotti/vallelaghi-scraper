@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../lib/scraper/article'
-require 'faker'
-
-RSpec.describe Article do
-  subject(:article) { described_class.new(Faker::Lorem.characters(:number => 5), Faker::Internet.url, Faker::Lorem.characters(:number => 20), Faker::Internet.url) }
+RSpec.describe Vallelaghi::Scraper::Article do
+  subject(:article) { described_class.new(Faker::Lorem.characters(number: 5), Faker::Internet.url, Faker::Lorem.characters(number: 20), Faker::Internet.url) }
 
   context 'when the article object is instantiated' do
     it 'has a title' do
@@ -24,7 +21,7 @@ RSpec.describe Article do
     end
 
     it 'has a text' do
-      article.text = Faker::Lorem.characters(:number => 40)
+      article.text = Faker::Lorem.characters(number: 40)
       expect(article.text).not_to be nil
     end
   end

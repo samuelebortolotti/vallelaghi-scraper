@@ -2,6 +2,8 @@
 
 require 'rubocop/rake_task'
 require 'rdoc/task'
+require 'bundler/gem_tasks'
+require 'rspec/core/rake_task'
 
 desc 'Run rubocop'
 RuboCop::RakeTask.new do |task|
@@ -14,5 +16,10 @@ RDoc::Task.new do |rdoc|
   rdoc.main = 'README.md'
   rdoc.rdoc_dir = 'doc'
   rdoc.title = 'Vallelaghi-Scraper Documentation'
-  rdoc.rdoc_files.include('README.md', 'lib/scraper/*.rb')
+  rdoc.rdoc_files.include('README.md', 'lib/*')
 end
+
+desc 'Run specs'
+RSpec::Core::RakeTask.new(:spec)
+
+task default: :spec
