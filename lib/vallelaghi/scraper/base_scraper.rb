@@ -77,7 +77,6 @@ module Vallelaghi
       # @param +url+:: url that must be processed
       # @param +data+:: data which is passed between the requests, must contain a value associated to the key :article
       def parse_article(response, url:, data: {})
-        # TODO: throw exception if the data doesn't have a value associated to :article key
         # The article's text is usually in the third p, but can happen that it is in the second and even the first (unfortunately the text has no specific location)
         data[:article].text = if response.xpath("(//section[@class='article-content clearfix']//p)[3]").nil?
                                 response.xpath("(//section[@class='article-content clearfix']//p)[3]").text.squish

@@ -10,5 +10,3 @@ module Vallelaghi
     class Error < StandardError; end
   end
 end
-
-# Vallelaghi::Scraper::BaseScraper.crawl!
