@@ -24,7 +24,7 @@ The site is offline, so the project is resumed on top of the Wayback Machine.
 - Fixed: missing dependency on ActiveSupport for `String#squish`
 - Fixed: the gem executable was never packaged (`bindir` pointed to an empty `exe/` folder)
 - Specs no longer depend on the network: they use archived pages as fixtures (WebMock)
-- Requires Ruby >= 3.2; updated every dependency; GitHub Actions instead of Travis CI
+- Requires Ruby >= 3.2; updated every dependency; removed the Travis CI configuration
 
 ### 0.1.1
 
