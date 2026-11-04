@@ -12,6 +12,9 @@ The site is offline, so the project is resumed on top of the Wayback Machine.
   archived copies
 - Article metadata: author, publication date, section, archive URL and cleaned HTML body
 - New `vallelaghi-scraper` command line interface with JSON, CSV and RSS output
+- `--source wayback|live`: pages come from the Wayback Machine by default; `live` reads the site itself
+- `--print` shows the articles in the terminal, `--limit` also caps the articles per section in `latest` mode
+- `rake demo`: a small real crawl to try the scraper
 - Polite HTTP client with throttling, retries with exponential backoff and an on-disk cache to resume long crawls
 - Replaced Kimurai (unmaintained, needed Selenium and Firefox) with Faraday and Nokogiri
 - Fixed: the text of an article was always taken from its third paragraph only (the fallback to the other

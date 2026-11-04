@@ -53,6 +53,12 @@ module Vallelaghi
         @http = http
       end
 
+      # Url to browse the archived copy of +url+ (same interface as LiveSite)
+      def view_url(url, timestamp) = Wayback.view_url(url, timestamp)
+
+      # Url of the archived copy of an image (same interface as LiveSite)
+      def asset_url(url, timestamp) = Wayback.image_url(url, timestamp)
+
       # Lists the successful HTML captures of +url+
       #
       # @param +url+:: url (or url prefix when +match_type+ is +:prefix+)

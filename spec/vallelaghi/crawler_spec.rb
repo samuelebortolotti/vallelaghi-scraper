@@ -48,6 +48,39 @@ RSpec.describe Vallelaghi::Scraper::Crawler do
     it 'can skip the article pages' do
       expect(crawler.latest(sections: ['articoli-di-valle'], fetch_text: false).map(&:text)).to all(be_nil)
     end
+
+    it 'limits the articles of each section' do
+      expect(crawler.latest(sections: ['articoli-di-valle'], limit: 2).size).to eq(2)
+    end
+  end
+
+  describe 'with the live site as source' do
+    subject(:crawler) do
+      described_class.new(http: Vallelaghi::Scraper::HttpClient.new(delay: 0, retries: 0), source: :live)
+    end
+
+    before do
+      stub_request(:get, listing_url).to_return(body: fixture('listing_articoli_di_valle.html'))
+      stub_request(:get, %r{\Ahttp://www\.valledeilaghi\.it/jcms/2020}).to_return(body: fixture('article_2020.html'))
+    end
+
+    let(:articles) { crawler.latest(sections: ['articoli-di-valle'], limit: 1) }
+
+    it 'reads the pages from the site, without archive links' do
+      expect(articles.first).to have_attributes(text: a_string_including('SARCHE'), archive_url: nil)
+    end
+
+    it 'keeps the original image urls' do
+      expect(articles.first.html).to include('src="http://www.valledeilaghi.it/jcms/images/')
+    end
+
+    it 'cannot list the archive' do
+      expect { crawler.archive }.to raise_error(Vallelaghi::Scraper::Error, /Wayback/)
+    end
+
+    it 'rejects unknown sources' do
+      expect { described_class.new(source: :ftp) }.to raise_error(ArgumentError, /ftp/)
+    end
   end
 
   describe '#archive' do
@@ -163,5 +196,27 @@ RSpec.describe Vallelaghi::Scraper::CLI do
       expect(run('latest', '-q', '--no-cache', '-f', 'json', '-o', dir)).to eq(0)
       expect(Dir.children(dir)).to eq(['articles.json'])
     end
+  end
+
+  it 'uses the Wayback Machine by default and passes the options to the crawler' do
+    crawler = instance_double(Vallelaghi::Scraper::Crawler, latest: [])
+    allow(Vallelaghi::Scraper::Crawler).to receive(:new).and_return(crawler)
+    Dir.mktmpdir { |dir| run('latest', '-q', '--no-cache', '-n', '2', '-o', dir) }
+    expect(Vallelaghi::Scraper::Crawler).to have_received(:new).with(hash_including(source: :wayback))
+    expect(crawler).to have_received(:latest).with(hash_including(limit: 2))
+  end
+
+  it 'prints the articles' do
+    article = Vallelaghi::Scraper::Article.new(title: 'Titolo', section: 'regionali', author: 'redazione',
+                                               published_at: Time.new(2020, 9, 26), text: "Riga\n\ndue",
+                                               link: 'http://x/1')
+    allow(Vallelaghi::Scraper::Crawler).to receive(:new)
+      .and_return(instance_double(Vallelaghi::Scraper::Crawler, latest: [article]))
+    Dir.mktmpdir { |dir| run('latest', '-q', '--no-cache', '--print', '-f', 'json', '-o', dir) }
+    expect(out.string).to include("[2020-09-26] Regionali | Titolo (redazione)\n  Riga due\n  http://x/1\n")
+  end
+
+  it 'reports that the live site cannot list the archive' do
+    expect([run('archive', '--source', 'live', '--no-cache'), err.string]).to match([1, /Wayback/])
   end
 end

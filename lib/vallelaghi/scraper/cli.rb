@@ -30,6 +30,8 @@ module Vallelaghi
           delay: 1.0,
           cache: default_cache_dir,
           fetch_text: true,
+          source: :wayback,
+          print: false,
           verbose: false,
           quiet: false
         }
@@ -51,18 +53,21 @@ module Vallelaghi
         end
       rescue OptionParser::ParseError, ArgumentError => e
         usage_error(parser, e.message)
+      rescue Error => e
+        @err.puts("Error: #{e.message}")
+        1
       end
 
       private
 
       def scrape(command)
         http = HttpClient.new(delay: @options[:delay], cache_dir: @options[:cache], logger: logger)
-        crawler = Crawler.new(http: http, logger: logger)
+        crawler = Crawler.new(http: http, source: @options[:source], logger: logger)
         articles = []
         begin
           if command == 'latest'
             articles = crawler.latest(sections: @options[:sections] || VallelaghiConstants::SECTIONS.keys,
-                                      fetch_text: @options[:fetch_text])
+                                      fetch_text: @options[:fetch_text], limit: @options[:limit])
           else
             crawler.archive(sections: @options[:sections], from: @options[:from], to: @options[:to],
                             limit: @options[:limit]) { |article| articles << article }
@@ -70,8 +75,20 @@ module Vallelaghi
         rescue Interrupt
           logger.warn("Interrupted: saving the #{articles.size} articles retrieved so far")
         end
+        print_articles(articles) if @options[:print]
         export(articles)
         0
+      end
+
+      # Human readable summary of the articles, newest first
+      def print_articles(articles)
+        Exporters::Rss.sort(articles).each do |a|
+          date = a.published_at&.strftime('%Y-%m-%d') || '????-??-??'
+          by = a.author ? " (#{a.author})" : ''
+          @out.puts("[#{date}] #{VallelaghiConstants.section_name(a.section)} | #{a.title}#{by}")
+          @out.puts("  #{Exporters::Rss.truncate(Util.squish(a.text || a.description), 200)}")
+          @out.puts("  #{a.archive_url || a.link}", '')
+        end
       end
 
       def feeds(path)
@@ -130,7 +147,8 @@ module Vallelaghi
         OptionParser.new do |o|
           o.banner = 'Usage: vallelaghi-scraper COMMAND [options]'
           o.separator ''
-          o.separator 'Recovers the articles of the (defunct) valledeilaghi.it newspaper from the Wayback Machine.'
+          o.separator 'Recovers the articles of the (defunct) valledeilaghi.it newspaper.'
+          o.separator 'Pages are read from the Wayback Machine unless --source live is given.'
           o.separator ''
           o.separator 'Commands:'
           COMMANDS.each { |name, desc| o.separator format('    %-10<name>s %<desc>s', name: name, desc: desc) }
@@ -155,12 +173,18 @@ module Vallelaghi
           o.on('--to DATE', 'archive: newest publication date (YYYY, YYYY-MM or YYYY-MM-DD)') do |v|
             @options[:to] = parse_date(v, last: true)
           end
-          o.on('-n', '--limit N', Integer, 'archive: maximum number of articles (newest first)') do |v|
+          o.on('--source SOURCE', Crawler::SOURCES, 'Where to read pages: wayback (default) or live ' \
+                                                    '(the site itself, latest only)') do |v|
+            @options[:source] = v
+          end
+          o.on('-n', '--limit N', Integer, 'Maximum number of articles (archive: in total, newest first; ' \
+                                           'latest: per section)') do |v|
             @options[:limit] = v
           end
           o.on('--no-text', 'latest: do not download the article pages (listing data only)') do
             @options[:fetch_text] = false
           end
+          o.on('-p', '--print', 'Also print the articles in the terminal') { @options[:print] = true }
           o.on('--max-items N', Integer, 'Maximum number of items in each RSS feed (default: all)') do |v|
             @options[:max_items] = v
           end

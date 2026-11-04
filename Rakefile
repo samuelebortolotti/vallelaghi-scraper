@@ -19,4 +19,9 @@ end
 desc 'Run specs'
 RSpec::Core::RakeTask.new(:spec)
 
+desc 'Try the scraper: the 3 latest articles of each section from the Wayback Machine, saved in output/demo'
+task :demo do
+  ruby 'exe/vallelaghi-scraper', 'latest', '--limit', '3', '--print', '--output', 'output/demo'
+end
+
 task default: %i[spec rubocop]
