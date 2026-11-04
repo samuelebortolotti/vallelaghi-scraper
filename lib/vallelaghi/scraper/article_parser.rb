@@ -13,13 +13,6 @@ module Vallelaghi
     # body is collected, after removing the social-sharing widgets.
     class ArticleParser
       BODY_SELECTORS = ['section.article-content', '[itemprop="articleBody"]', 'div.item-page'].freeze
-      # Elements that never belong to the text of an article
-      NOISE_SELECTORS = [
-        'script', 'style', 'noscript', 'iframe', 'form',
-        '[class*="fastsocialshare"]', '[class*="sh404sef"]', '[class*="social"]'
-      ].freeze
-      TEXT_SELECTORS = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, pre'
-      IMAGE = /\.(jpe?g|png|gif)\z/i
 
       # @param +html+:: HTML of the article page
       # @param +url+:: original url of the article, used to resolve relative links
@@ -28,7 +21,7 @@ module Vallelaghi
       def initialize(html, url: VallelaghiConstants::BASE_URL, rewrite_asset: nil)
         @doc = html.is_a?(Nokogiri::HTML::Document) ? html : Nokogiri::HTML(html, nil, 'UTF-8')
         @url = url
-        @rewrite_asset = rewrite_asset
+        @cleaner = HtmlCleaner.new(url: url, rewrite_asset: rewrite_asset)
       end
 
       # @returns a Hash with the attributes of the article found in the page
@@ -41,8 +34,8 @@ module Vallelaghi
           published_at: published_at,
           description: description,
           image_url: image_url(body),
-          text: body && text_of(body),
-          html: body&.inner_html&.strip
+          text: @cleaner.text(body),
+          html: @cleaner.html(body)
         }
       end
 
@@ -96,35 +89,7 @@ module Vallelaghi
         node = BODY_SELECTORS.lazy.filter_map do |selector|
           article_node.at_css(selector) || @doc.at_css(selector)
         end.first
-        return nil unless node
-
-        node = node.dup
-        node.css(NOISE_SELECTORS.join(', ')).each(&:remove)
-        node.xpath('.//comment()').each(&:remove)
-        absolutize(node)
-        node
-      end
-
-      def absolutize(node)
-        node.css('a[href]').each { |a| a['href'] = Util.absolute_url(a['href'], @url) || a['href'] }
-        node.css('img[src]').each { |img| img['src'] = asset_url(img['src']) || img['src'] }
-        # links that open the full size picture
-        node.css('a.jcepopup[href]').each { |a| a['href'] = asset_url(a['href']) if a['href'].match?(IMAGE) }
-      end
-
-      def asset_url(src)
-        url = Util.absolute_url(src, @url)
-        url && @rewrite_asset ? @rewrite_asset.call(url) : url
-      end
-
-      def text_of(body)
-        candidates = body.css(TEXT_SELECTORS).to_a
-        ids = candidates.to_set(&:pointer_id)
-        # skip blocks nested in other blocks (e.g. a <p> inside a <li>) to avoid duplicated text
-        blocks = candidates.reject { |n| n.ancestors.any? { |a| ids.include?(a.pointer_id) } }
-        paragraphs = blocks.map { |n| Util.squish(n.text) }.reject(&:empty?)
-        paragraphs = [Util.squish(body.text)] if paragraphs.empty?
-        paragraphs.join("\n\n")
+        @cleaner.clean(node)
       end
     end
   end

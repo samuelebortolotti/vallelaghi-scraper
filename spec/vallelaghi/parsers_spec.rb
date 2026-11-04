@@ -30,6 +30,13 @@ RSpec.describe Vallelaghi::Scraper::ListingParser do
     )
   end
 
+  it 'keeps the intro as text and html, with absolute links' do
+    expect(first).to have_attributes(
+      text: 'Doppio intervento dei pompieri volontari.',
+      html: a_string_including('src="http://www.valledeilaghi.it/jcms/images/archivio/202009/26_massi/thumbnails/')
+    )
+  end
+
   it 'finds the next page' do
     expect(parser.next_page_url).to eq('http://www.valledeilaghi.it/jcms/articoli/articoli-di-valle?start=5')
   end

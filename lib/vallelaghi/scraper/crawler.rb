@@ -104,7 +104,9 @@ module Vallelaghi
         end
 
         page = @source.fetch(capture)
-        { capture: page.capture, articles: ListingParser.new(page.body, section: section).articles }
+        ts = page.capture.timestamp
+        parser = ListingParser.new(page.body, section: section, rewrite_asset: ->(u) { @source.asset_url(u, ts) })
+        { capture: page.capture, articles: parser.articles }
       rescue HttpClient::Error => e
         @logger.error("Cannot retrieve #{url}: #{e.message}")
         nil

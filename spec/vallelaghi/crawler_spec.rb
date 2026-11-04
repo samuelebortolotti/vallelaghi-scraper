@@ -42,11 +42,20 @@ RSpec.describe Vallelaghi::Scraper::Crawler do
     end
 
     it 'keeps the listing data of the articles that were never archived' do
-      expect(articles.drop(1)).to all(have_attributes(text: nil, archive_url: nil, title: a_kind_of(String)))
+      expect(articles.drop(1)).to all(have_attributes(archive_url: nil, title: a_kind_of(String)))
     end
 
-    it 'can skip the article pages' do
-      expect(crawler.latest(sections: ['articoli-di-valle'], fetch_text: false).map(&:text)).to all(be_nil)
+    it 'uses the intro as text and html of the articles that were never archived' do
+      expect(articles.drop(1)).to all(have_attributes(text: a_kind_of(String), html: a_string_including('<')))
+    end
+
+    it 'points the images of the intro to the archive' do
+      expect(articles[1].html).to include("https://web.archive.org/web/#{listing_ts}im_/http://www.valledeilaghi.it/")
+    end
+
+    it 'can skip the article pages, keeping the intro' do
+      intros = crawler.latest(sections: ['articoli-di-valle'], fetch_text: false).map(&:text)
+      expect(intros.first).to eq('Doppio intervento dei pompieri volontari.')
     end
 
     it 'limits the articles of each section' do

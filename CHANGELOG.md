@@ -15,6 +15,8 @@ The site is offline, so the project is resumed on top of the Wayback Machine.
 - `--source wayback|live`: pages come from the Wayback Machine by default; `live` reads the site itself
 - `--print` shows the articles in the terminal, `--limit` also caps the articles per section in `latest` mode
 - `rake demo`: a small real crawl to try the scraper
+- Articles whose page was never archived (or `--no-text`) use the intro of the listing page as `text`/`html`
+  instead of `null`
 - Polite HTTP client with throttling, retries with exponential backoff and an on-disk cache to resume long crawls
 - Replaced Kimurai (unmaintained, needed Selenium and Firefox) with Faraday and Nokogiri
 - Fixed: the text of an article was always taken from its third paragraph only (the fallback to the other

@@ -11,10 +11,12 @@ module Vallelaghi
       # @param +html+:: HTML of the listing page
       # @param +section+:: slug of the section the page belongs to
       # @param +base_url+:: url used to resolve relative links
-      def initialize(html, section: nil, base_url: VallelaghiConstants::BASE_URL)
+      # @param +rewrite_asset+:: optional lambda applied to every absolute image url
+      def initialize(html, section: nil, base_url: VallelaghiConstants::BASE_URL, rewrite_asset: nil)
         @doc = html.is_a?(Nokogiri::HTML::Document) ? html : Nokogiri::HTML(html, nil, 'UTF-8')
         @section = section
         @base_url = base_url
+        @cleaner = HtmlCleaner.new(url: base_url, rewrite_asset: rewrite_asset)
       end
 
       # @returns an Array of Article, one for each article listed in the page
@@ -34,7 +36,8 @@ module Vallelaghi
         link_node = node.at_css('.article-title a')
         return nil unless link_node
 
-        intro = node.at_css('section.article-intro')
+        intro = @cleaner.clean(node.at_css('section.article-intro'))
+        # the intro is also the text of the article until (unless) its own page is downloaded
         Article.new(
           title: Util.squish(link_node.text),
           link: Util.absolute_url(link_node['href'], @base_url),
@@ -42,7 +45,9 @@ module Vallelaghi
           author: Util.squish(node.at_css('[itemprop="author"] [itemprop="name"]')&.text),
           published_at: parse_time(node.at_css('time[datetime]')&.[]('datetime')),
           description: Util.squish(intro&.text),
-          image_url: Util.absolute_url(intro&.at_css('img')&.[]('src'), @base_url)
+          image_url: Util.absolute_url(node.at_css('section.article-intro img')&.[]('src'), @base_url),
+          text: @cleaner.text(intro),
+          html: @cleaner.html(intro)
         )
       end
 

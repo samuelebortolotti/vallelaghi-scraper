@@ -69,6 +69,50 @@ Then try a slice of the archive, for example the articles of January 2016:
 bundle exec exe/vallelaghi-scraper archive --from 2016-01 --to 2016-01 --print -o output/2016-01
 ```
 
+## Downloading the whole history
+
+The `archive` command recovers every article the Wayback Machine ever captured: about 5,300 articles published
+between 2007 and 2020. The scraper first asks the archive's index for every known URL of the site (one request),
+merges the different addresses the same article had over the years, and then downloads one page per article.
+
+```bash
+bundle exec exe/vallelaghi-scraper archive -o output/archive
+```
+
+It takes a few hours: requests are spaced by one second (please keep it that way, the Internet Archive is a
+non-profit) and the archive often asks to slow down, which the scraper handles by waiting and retrying. Since it
+runs for a long time, start it in `tmux`/`screen` or in the background and follow the log:
+
+```bash
+nohup bundle exec exe/vallelaghi-scraper archive -o output/archive > output/archive.log 2>&1 &
+tail -f output/archive.log
+```
+
+You don't have to do it in one go:
+
+- **Stop and resume.** Every downloaded page is cached in `~/.cache/vallelaghi-scraper`. Press `Ctrl-C` (or kill
+  the process) whenever you want: the articles retrieved so far are saved, and running the same command again skips
+  everything already downloaded and continues from there.
+- **One year at a time.** Each run produces a complete, usable output for its slice:
+
+  ```bash
+  for year in $(seq 2007 2020); do
+    bundle exec exe/vallelaghi-scraper archive --from "$year" --to "$year" -q -o "output/archive/$year"
+  done
+  ```
+
+  When all the years are done, the full run above takes only a couple of minutes, because every page comes from
+  the cache: it is the easiest way to get a single `articles.json` and feeds with the whole history.
+
+The result is large (tens of MB of JSON, since every article includes its HTML). Use `-f json` to skip the other
+formats, and build smaller feeds afterwards, e.g. the 100 most recent articles per section:
+
+```bash
+bundle exec exe/vallelaghi-scraper feeds output/archive/articles.json --max-items 100 -o output/archive-small
+```
+
+Articles whose page was never archived are skipped (they are listed as `skipped` in the log).
+
 ## Usage
 
 ```bash
@@ -146,7 +190,8 @@ output/
 - Every response is cached in `~/.cache/vallelaghi-scraper` (`--cache DIR`, `--no-cache`): an interrupted crawl
   resumes where it stopped, and pressing `Ctrl-C` still saves the articles retrieved so far.
 - A few articles were never archived: in `latest` mode they keep the data shown on the listing page (title,
-  intro, date) but have no text and no `archive_url`; in `archive` mode they are skipped.
+  date, author) and their intro becomes their `text`/`html`, but they have no `archive_url`; in `archive` mode
+  they are skipped. The same happens to every article with `--no-text`.
 
 ## Using it as a library
 
