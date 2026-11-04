@@ -1,15 +1,16 @@
-Gemfile.lock
-
-# Rubocop guidelines
-.rubocop.yml
-.rubocop_todo.yml
-
 # Random files that I use
 todefine.txt
 scraped_articles.*
 
-# Documentations
+# Scraper output
+output/
+
+# Documentation
 doc/
 
 # Generated gem for testing
 *.gem
+
+# Bundler
+vendor/
+.bundle/

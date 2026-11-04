@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'lib/vallelaghi/scraper/version'
 
 Gem::Specification.new do |spec|
@@ -6,32 +8,27 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Samuele Bortolotti']
   spec.email         = ['samuele.bortolotti@hotmail.it']
 
-  spec.summary       = 'A web scaper for www.valledeilaghi.it'
+  spec.summary       = 'A web scraper for www.valledeilaghi.it, recovered from the Wayback Machine'
+  spec.description   = 'Recovers the articles of the defunct valledeilaghi.it online newspaper from the ' \
+                       'Internet Archive and exports them as JSON, CSV and RSS feeds.'
   spec.homepage      = 'https://github.com/samuelebortolotti/vallelaghi-scraper'
   spec.license       = 'MIT'
-  spec.required_ruby_version = Gem::Requirement.new('>= 2.3.0')
-
-  spec.metadata['allowed_push_host'] = "TODO: Set to 'http://mygemserver.com'"
+  spec.required_ruby_version = Gem::Requirement.new('>= 3.2.0')
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage
+  spec.metadata['changelog_uri'] = "#{spec.homepage}/blob/master/CHANGELOG.md"
+  spec.metadata['rubygems_mfa_required'] = 'true'
 
-  # Specify which files should be added to the gem when it is released.
-  # The `git ls-files -z` loads the files in the RubyGem that have been added into git. (I have to change it)
-  spec.files         = Dir['lib/vallelaghi/*.rb'] + Dir['lib/vallelaghi/scraper/*.rb'] + Dir['lib/vallelaghi/scraper/article/*.rb']
+  spec.files         = Dir['lib/**/*.rb', 'exe/*', 'README.md', 'CHANGELOG.md', 'LICENSE.txt']
   spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.executables   = ['vallelaghi-scraper']
   spec.require_paths = ['lib']
-  
-  # dependencies
-  spec.add_dependency 'kimurai', '~> 1.4.0'
 
-  spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rubocop', '~> 0.92.0'
-  spec.add_development_dependency 'rspec', '~> 3.9'
-  spec.add_development_dependency 'rubocop-rspec', '~> 1.43.2'
-  spec.add_development_dependency 'faker', '~> 2.14'
-  spec.add_development_dependency 'httparty', '~> 0.18.1'
-  spec.add_development_dependency 'rdoc', '~> 6.2.1'
+  spec.add_dependency 'csv', '~> 3.2'
+  spec.add_dependency 'faraday', '~> 2.7'
+  spec.add_dependency 'faraday-follow_redirects', '~> 0.3'
+  spec.add_dependency 'faraday-retry', '~> 2.2'
+  spec.add_dependency 'nokogiri', '~> 1.15'
+  spec.add_dependency 'rss', '~> 0.3'
 end

@@ -1,0 +1,56 @@
+plugins:
+  - rubocop-rake
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: enable
+  Exclude:
+    - vendor/**/*
+    - output/**/*
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/ClassLength:
+  Max: 150
+  Exclude:
+    - lib/vallelaghi/scraper/cli.rb
+
+Metrics/MethodLength:
+  Max: 20
+  AllowedMethods:
+    - option_parser
+
+Metrics/AbcSize:
+  Max: 35
+  AllowedMethods:
+    - option_parser
+
+Metrics/BlockLength:
+  AllowedMethods:
+    - new
+  Exclude:
+    - spec/**/*
+    - "*.gemspec"
+
+RSpec/MultipleExpectations:
+  Max: 3
+
+RSpec/ExampleLength:
+  Max: 10
+
+RSpec/MultipleDescribes:
+  Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/InstanceVariable:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 8
